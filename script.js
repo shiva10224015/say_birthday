@@ -1,778 +1,661 @@
 
-'use strict';
+"use strict";
 
-/* =========================================
-   GSR PRIVATE BIRTHDAY — LUXURY EDITION
-   FOR GILANG SYAHRIR RAMADHAN
-   12 NOVEMBER
-========================================= */
+/* ==========================================
+   GSR BIRTHDAY — FINAL JAVASCRIPT
+   6 bab, musik, surat, grafik, confetti
+========================================== */
 
-const $ = selector => document.querySelector(selector);
+document.addEventListener("DOMContentLoaded", () => {
 
-const reduced = window.matchMedia(
-  '(prefers-reduced-motion: reduce)'
-).matches;
+  // ========================================
+  // 1. NAVIGASI ANTARBAB
+  // ========================================
 
-/* =========================================
-   1. SCROLL REVEAL ANIMATION
-========================================= */
+  const chapters = [
+    ...document.querySelectorAll(".chapter")
+  ];
 
-const revealElements = document.querySelectorAll('.reveal');
+  const backButton =
+    document.getElementById("backButton");
 
-if ('IntersectionObserver' in window && !reduced) {
-  const observer = new IntersectionObserver(
-    entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    {
-      threshold: 0.1,
-      rootMargin: '0px 0px -30px 0px'
-    }
-  );
+  const nextButton =
+    document.getElementById("nextButton");
 
-  revealElements.forEach(element => {
-    observer.observe(element);
-  });
-} else {
-  revealElements.forEach(element => {
-    element.classList.add('visible');
-  });
-}
+  const currentChapter =
+    document.getElementById("currentChapter");
 
-/* =========================================
-   2. SCROLL PROGRESS BAR
-========================================= */
+  const homeLink =
+    document.getElementById("homeLink");
 
-let scrollScheduled = false;
+  const nextLabels = [
+    "Mulai Kejutan Ini ✨",
+    "Masih Ada yang Ingin Aku Ceritakan ♡",
+    "Ada Sesuatu Buat Kamu 💌",
+    "Lanjut ke Kejutan Berikutnya →",
+    "Siap untuk Kejutan Terakhir? ✨"
+  ];
 
-function updateScrollProgress() {
-  const scrollLine = $('#scrollLine');
+  let currentIndex = 0;
 
-  if (!scrollLine) return;
-
-  const maxScroll =
-    document.documentElement.scrollHeight -
-    window.innerHeight;
-
-  const progress = maxScroll > 0
-    ? (window.scrollY / maxScroll) * 100
-    : 0;
-
-  scrollLine.style.width = progress + '%';
-}
-
-window.addEventListener(
-  'scroll',
-  () => {
-    if (scrollScheduled) return;
-
-    scrollScheduled = true;
-
-    requestAnimationFrame(() => {
-      updateScrollProgress();
-      scrollScheduled = false;
-    });
-  },
-  { passive: true }
-);
-
-updateScrollProgress();
-
-/* =========================================
-   3. ANIMATED TRADING CANDLESTICK
-   Decorative chart, not real market data
-========================================= */
-
-const chart = $('#heroChart');
-
-if (chart) {
-  const ctx = chart.getContext('2d');
-
-  let chartTick = 0;
-
-  const candleData = Array.from(
-    { length: 74 },
-    (_, i) => {
-      const base =
-        65 +
-        i * 0.55 +
-        Math.sin(i * 0.45) * 11;
-
-      const close =
-        base +
-        Math.sin(i * 1.9) * 11 +
-        Math.cos(i * 0.8) * 4;
-
-      return {
-        o: base,
-        c: close,
-        h: Math.max(base, close) + 5 + Math.random() * 7,
-        l: Math.min(base, close) - 5 - Math.random() * 7
-      };
-    }
-  );
-
-  function drawChart() {
-    const rect = chart.getBoundingClientRect();
-
-    const dpr = Math.min(
-      window.devicePixelRatio || 1,
-      2
-    );
-
-    if (!rect.width || !rect.height) return;
-
-    const targetWidth = Math.round(rect.width * dpr);
-    const targetHeight = Math.round(rect.height * dpr);
-
-    if (
-      chart.width !== targetWidth ||
-      chart.height !== targetHeight
-    ) {
-      chart.width = targetWidth;
-      chart.height = targetHeight;
+  function showChapter(index) {
+    if (index < 0 || index >= chapters.length) {
+      return;
     }
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    currentIndex = index;
 
-    const w = rect.width;
-    const h = rect.height;
+    chapters.forEach((chapter, i) => {
+      const isActive = i === index;
 
-    ctx.clearRect(0, 0, w, h);
-
-    ctx.strokeStyle = '#5b739044';
-    ctx.lineWidth = 1;
-
-    for (let y = 0; y <= h; y += 50) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
-      ctx.stroke();
-    }
-
-    const gap = w / candleData.length;
-    const scale = (h - 20) / 145;
-
-    const count = reduced
-      ? candleData.length
-      : Math.min(
-          candleData.length,
-          Math.floor(chartTick)
-        );
-
-    for (let i = 0; i < count; i++) {
-      const candle = candleData[i];
-
-      const x = i * gap + gap / 2;
-
-      const py = value =>
-        h - 10 - value * scale;
-
-      const rising = candle.c >= candle.o;
-
-      const color = rising
-        ? '#59d6a3'
-        : '#df7780';
-
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      ctx.lineWidth = 1.3;
-
-      ctx.beginPath();
-      ctx.moveTo(x, py(candle.h));
-      ctx.lineTo(x, py(candle.l));
-      ctx.stroke();
-
-      ctx.fillRect(
-        x - gap * 0.29,
-        Math.min(py(candle.o), py(candle.c)),
-        Math.max(2, gap * 0.58),
-        Math.max(
-          2,
-          Math.abs(
-            py(candle.o) - py(candle.c)
-          )
-        )
+      chapter.classList.toggle("active", isActive);
+      chapter.setAttribute(
+        "aria-hidden",
+        String(!isActive)
       );
+
+      if (isActive) {
+        chapter.scrollTop = 0;
+      }
+    });
+
+    backButton.disabled = index === 0;
+
+    nextButton.hidden =
+      index === chapters.length - 1;
+
+    if (!nextButton.hidden) {
+      nextButton.textContent =
+        nextLabels[index] || "Lanjutkan →";
+    }
+
+    currentChapter.textContent =
+      String(index + 1).padStart(2, "0");
+
+    document.title =
+      index === chapters.length - 1
+        ? "Happy Birthday, Sayang ♡"
+        : "Untuk Gilang, dengan Cinta ♡";
+
+    if (index === 1) {
+      drawMarketChart();
+    }
+
+    if (index === chapters.length - 1) {
+      launchConfetti(90);
     }
   }
 
-  function chartFrame() {
-    chartTick = Math.min(
-      candleData.length + 1,
-      chartTick + 0.34
-    );
-
-    drawChart();
-
-    if (chartTick < candleData.length + 1) {
-      requestAnimationFrame(chartFrame);
-    }
-  }
-
-  if (reduced) {
-    drawChart();
-  } else {
-    chartFrame();
-  }
-
-  let resizeTimeout;
-
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-
-    resizeTimeout = setTimeout(
-      drawChart,
-      100
-    );
+  nextButton.addEventListener("click", () => {
+    showChapter(currentIndex + 1);
+    startMusicOnInteraction();
   });
-}
 
-/* =========================================
-   4. ROMANTIC LETTER INTERACTION
-========================================= */
+  backButton.addEventListener("click", () => {
+    showChapter(currentIndex - 1);
+  });
 
-const letterContent = $('#letterContent');
-const letterButton = $('#letterButton');
+  homeLink.addEventListener("click", event => {
+    event.preventDefault();
+    showChapter(0);
+  });
 
-if (letterContent && letterButton) {
-  letterButton.addEventListener('click', () => {
-    const opening = letterContent.hidden;
+  showChapter(0);
 
-    letterContent.hidden = !opening;
 
-    letterButton.setAttribute(
-      'aria-expanded',
-      String(opening)
+  // ========================================
+  // 2. SURAT CINTA INTERAKTIF
+  // ========================================
+
+  const openLetter =
+    document.getElementById("openLetter");
+
+  const letterContent =
+    document.getElementById("letterContent");
+
+  const letterHint =
+    document.getElementById("letterHint");
+
+  openLetter.addEventListener("click", () => {
+    const isClosed = letterContent.hidden;
+
+    letterContent.hidden = !isClosed;
+
+    openLetter.classList.toggle(
+      "opened",
+      isClosed
     );
 
-    letterButton.innerHTML = opening
-      ? 'CLOSE MY LETTER <span>♡</span>'
-      : 'OPEN MY LETTER <span>✉</span>';
+    openLetter.setAttribute(
+      "aria-expanded",
+      String(isClosed)
+    );
 
-    if (opening) {
+    letterHint.textContent = isClosed
+      ? "Surat ini khusus untuk kamu, Sayang ♡"
+      : "Ketuk amplop untuk membuka surat ♡";
+
+    if (isClosed) {
       setTimeout(() => {
         letterContent.scrollIntoView({
-          behavior: reduced ? 'auto' : 'smooth',
-          block: 'nearest'
+          behavior: "smooth",
+          block: "nearest"
         });
       }, 100);
     }
   });
-}
 
-/* =========================================
-   5. HAPPY BIRTHDAY INSTRUMENTAL MUSIC
 
-   - Attempts autoplay on page load
-   - Falls back to first user interaction
-   - Can be stopped or restarted manually
-   - Repeats the birthday melody
-========================================= */
+  // ========================================
+  // 3. GRAFIK CANDLESTICK DEKORATIF
+  // ========================================
 
-let audioContext = null;
-let playing = false;
-let startingMusic = false;
+  const marketCanvas =
+    document.getElementById("marketChart");
 
-let notesTimeout = null;
-let currentNodes = [];
+  const marketContext =
+    marketCanvas.getContext("2d");
 
-let musicGeneration = 0;
-let manualMusicOff = false;
+  let chartData = [];
 
-const musicButton = $('#musicButton');
+  function createChartData() {
+    let price = 55;
 
-/* Happy Birthday to You melody */
+    chartData = Array.from({ length: 24 }, () => {
+      const open = price;
+      const close =
+        open + (Math.random() - .42) * 14;
 
-const melody = [
-  ['G4', 0.75],
-  ['G4', 0.25],
-  ['A4', 1],
-  ['G4', 1],
-  ['C5', 1],
-  ['B4', 2],
+      const high =
+        Math.max(open, close) +
+        Math.random() * 7;
 
-  ['G4', 0.75],
-  ['G4', 0.25],
-  ['A4', 1],
-  ['G4', 1],
-  ['D5', 1],
-  ['C5', 2],
+      const low =
+        Math.min(open, close) -
+        Math.random() * 7;
 
-  ['G4', 0.75],
-  ['G4', 0.25],
-  ['G5', 1],
-  ['E5', 1],
-  ['C5', 1],
-  ['B4', 1],
-  ['A4', 2],
+      price = close;
 
-  ['F5', 0.75],
-  ['F5', 0.25],
-  ['E5', 1],
-  ['C5', 1],
-  ['D5', 1],
-  ['C5', 2]
-];
-
-const frequencies = {
-  G4: 392.00,
-  A4: 440.00,
-  B4: 493.88,
-  C5: 523.25,
-  D5: 587.33,
-  E5: 659.25,
-  F5: 698.46,
-  G5: 783.99
-};
-
-/* Update music button */
-
-function updateMusicButton() {
-  if (!musicButton) return;
-
-  musicButton.textContent = playing
-    ? '♫ STOP MUSIC'
-    : '♫ PLAY BIRTHDAY SONG';
-
-  musicButton.setAttribute(
-    'aria-pressed',
-    String(playing)
-  );
-}
-
-/* Stop active and scheduled notes */
-
-function stopActiveNotes() {
-  clearTimeout(notesTimeout);
-  notesTimeout = null;
-
-  if (audioContext) {
-    const now = audioContext.currentTime;
-
-    currentNodes.forEach(({ gain, osc }) => {
-      try {
-        gain.gain.cancelScheduledValues(now);
-
-        gain.gain.setTargetAtTime(
-          0.0001,
-          now,
-          0.03
-        );
-
-        osc.stop(now + 0.15);
-      } catch (error) {
-        // The oscillator may already have stopped.
-      }
+      return { open, close, high, low };
     });
   }
 
-  currentNodes = [];
-}
+  function drawMarketChart() {
+    if (!marketCanvas || !marketContext) {
+      return;
+    }
 
-/* Stop birthday music */
+    const bounds =
+      marketCanvas.getBoundingClientRect();
 
-function stopMusic(userStopped = false) {
-  musicGeneration++;
+    if (bounds.width < 1 || bounds.height < 1) {
+      return;
+    }
 
-  playing = false;
-  startingMusic = false;
+    const dpr = window.devicePixelRatio || 1;
+    const width = bounds.width;
+    const height = bounds.height;
 
-  if (userStopped) {
-    manualMusicOff = true;
+    marketCanvas.width =
+      Math.round(width * dpr);
+
+    marketCanvas.height =
+      Math.round(height * dpr);
+
+    marketContext.setTransform(
+      dpr, 0, 0, dpr, 0, 0
+    );
+
+    marketContext.clearRect(
+      0, 0, width, height
+    );
+
+    // Garis horizontal dekoratif
+    marketContext.strokeStyle =
+      "rgba(217,186,128,.11)";
+
+    marketContext.lineWidth = 1;
+
+    for (let i = 1; i < 5; i++) {
+      const y = height * i / 5;
+
+      marketContext.beginPath();
+      marketContext.moveTo(0, y);
+      marketContext.lineTo(width, y);
+      marketContext.stroke();
+    }
+
+    if (!chartData.length) {
+      createChartData();
+    }
+
+    const allValues = chartData.flatMap(
+      item => [item.high, item.low]
+    );
+
+    const min = Math.min(...allValues) - 5;
+    const max = Math.max(...allValues) + 5;
+
+    function toY(value) {
+      return (
+        height - 12 -
+        ((value - min) / (max - min)) *
+        (height - 24)
+      );
+    }
+
+    const slotWidth = width / chartData.length;
+    const candleWidth = Math.max(
+      3,
+      Math.min(12, slotWidth * .52)
+    );
+
+    chartData.forEach((item, index) => {
+      const x =
+        slotWidth * index + slotWidth / 2;
+
+      const rising =
+        item.close >= item.open;
+
+      const color = rising
+        ? "#d9ba80"
+        : "#6588a5";
+
+      marketContext.strokeStyle = color;
+      marketContext.fillStyle = color;
+      marketContext.lineWidth = 1.5;
+
+      // Sumbu atas-bawah candle
+      marketContext.beginPath();
+      marketContext.moveTo(x, toY(item.high));
+      marketContext.lineTo(x, toY(item.low));
+      marketContext.stroke();
+
+      // Badan candle
+      const top = Math.min(
+        toY(item.open),
+        toY(item.close)
+      );
+
+      const bodyHeight = Math.max(
+        2,
+        Math.abs(
+          toY(item.open) - toY(item.close)
+        )
+      );
+
+      marketContext.fillRect(
+        x - candleWidth / 2,
+        top,
+        candleWidth,
+        bodyHeight
+      );
+    });
   }
 
-  stopActiveNotes();
-  updateMusicButton();
-}
+  window.addEventListener("resize", () => {
+    if (currentIndex === 1) {
+      drawMarketChart();
+    }
+  });
 
-/* Schedule one melody cycle */
 
-function scheduleMelody(generation) {
-  if (
-    !playing ||
-    !audioContext ||
-    generation !== musicGeneration
-  ) {
-    return;
-  }
+  // ========================================
+  // 4. MUSIK HAPPY BIRTHDAY INSTRUMENTAL
+  // ========================================
 
-  const beat = 0.43;
-  const start = audioContext.currentTime + 0.08;
+  const musicButton =
+    document.getElementById("musicButton");
 
-  let offset = 0;
+  const AudioContextClass =
+    window.AudioContext ||
+    window.webkitAudioContext;
 
-  // Previous notes have already finished.
-  currentNodes = [];
+  let audioContext = null;
+  let musicEnabled = false;
+  let musicTimer = null;
+  let nextNoteTime = 0;
+  let noteIndex = 0;
 
-  melody.forEach(([note, duration]) => {
-    const time = start + offset;
-    const length = duration * beat;
+  // Melodi tradisional Happy Birthday
+  // Nada dalam format frekuensi dan durasi ketukan.
+  const melody = [
+    [392.00, .5], [392.00, .5],
+    [440.00, 1], [392.00, 1],
+    [523.25, 1], [493.88, 2],
 
+    [392.00, .5], [392.00, .5],
+    [440.00, 1], [392.00, 1],
+    [587.33, 1], [523.25, 2],
+
+    [392.00, .5], [392.00, .5],
+    [783.99, 1], [659.25, 1],
+    [523.25, 1], [493.88, 1],
+    [440.00, 2],
+
+    [698.46, .5], [698.46, .5],
+    [659.25, 1], [523.25, 1],
+    [587.33, 1], [523.25, 2]
+  ];
+
+  const beatSeconds = .43;
+
+  function playTone(frequency, start, duration) {
     const oscillator =
       audioContext.createOscillator();
 
     const gain =
       audioContext.createGain();
 
-    oscillator.type = 'sine';
-
+    oscillator.type = "sine";
     oscillator.frequency.setValueAtTime(
-      frequencies[note],
-      time
+      frequency,
+      start
     );
 
     gain.gain.setValueAtTime(
-      0.0001,
-      time
+      .0001,
+      start
     );
 
     gain.gain.exponentialRampToValueAtTime(
-      0.075,
-      time + 0.04
+      .075,
+      start + .025
     );
 
     gain.gain.exponentialRampToValueAtTime(
-      0.0001,
-      time + length * 0.92
+      .0001,
+      start + duration
     );
 
     oscillator.connect(gain);
     gain.connect(audioContext.destination);
 
-    oscillator.start(time);
-    oscillator.stop(time + length);
+    oscillator.start(start);
+    oscillator.stop(start + duration + .02);
+  }
 
-    currentNodes.push({
-      osc: oscillator,
-      gain: gain
-    });
+  function scheduleMusic() {
+    if (!musicEnabled || !audioContext) {
+      return;
+    }
 
-    offset += length;
-  });
+    const lookAhead = .25;
 
-  // Repeat the song after a short pause.
-  notesTimeout = setTimeout(() => {
-    if (
-      playing &&
-      generation === musicGeneration
+    while (
+      nextNoteTime <
+      audioContext.currentTime + lookAhead
     ) {
-      scheduleMelody(generation);
+      const [frequency, beats] =
+        melody[noteIndex];
+
+      const duration =
+        beats * beatSeconds;
+
+      playTone(
+        frequency,
+        nextNoteTime,
+        Math.max(.08, duration * .9)
+      );
+
+      nextNoteTime += duration;
+      noteIndex =
+        (noteIndex + 1) % melody.length;
+
+      if (noteIndex === 0) {
+        nextNoteTime += .7;
+      }
     }
-  }, (offset + 0.15) * 1000);
-}
-
-/* Start music */
-
-async function playMusic() {
-  if (
-    playing ||
-    startingMusic ||
-    manualMusicOff
-  ) {
-    return;
   }
 
-  const AudioContextClass =
-    window.AudioContext ||
-    window.webkitAudioContext;
-
-  if (!AudioContextClass) {
-    console.warn(
-      'Browser tidak mendukung Web Audio.'
-    );
-    return;
-  }
-
-  startingMusic = true;
-
-  const generation = ++musicGeneration;
-
-  try {
-    audioContext =
-      audioContext || new AudioContextClass();
-
-    // Some browsers allow this only after a gesture.
-    await audioContext.resume();
-
-    if (generation !== musicGeneration) {
+  async function startMusic() {
+    if (!AudioContextClass) {
+      musicButton.textContent =
+        "♪ Musik tidak didukung";
       return;
     }
 
-    if (audioContext.state !== 'running') {
-      startingMusic = false;
-      return;
+    try {
+      if (!audioContext) {
+        audioContext = new AudioContextClass();
+      }
+
+      await audioContext.resume();
+
+      if (musicEnabled) {
+        return;
+      }
+
+      musicEnabled = true;
+      noteIndex = 0;
+
+      nextNoteTime =
+        audioContext.currentTime + .08;
+
+      scheduleMusic();
+
+      musicTimer = setInterval(
+        scheduleMusic,
+        100
+      );
+
+      musicButton.textContent =
+        "♫ Musik: Nyala";
+
+      musicButton.setAttribute(
+        "aria-pressed",
+        "true"
+      );
+
+      musicButton.setAttribute(
+        "aria-label",
+        "Matikan musik"
+      );
+
+    } catch (error) {
+      console.warn(
+        "Musik belum bisa diputar:",
+        error
+      );
+    }
+  }
+
+  function stopMusic() {
+    musicEnabled = false;
+
+    clearInterval(musicTimer);
+    musicTimer = null;
+
+    // Menghentikan suara yang sedang berjalan.
+    if (audioContext) {
+      audioContext.suspend().catch(() => {});
     }
 
-    playing = true;
-    startingMusic = false;
+    musicButton.textContent =
+      "♪ Musik: Mati";
 
-    updateMusicButton();
-    removeAutoPlayListeners();
-    scheduleMelody(generation);
+    musicButton.setAttribute(
+      "aria-pressed",
+      "false"
+    );
 
-  } catch (error) {
-    if (generation === musicGeneration) {
-      startingMusic = false;
-    }
-
-    console.log(
-      'Autoplay belum diizinkan. ' +
-      'Musik menunggu interaksi pertama.'
+    musicButton.setAttribute(
+      "aria-label",
+      "Nyalakan musik"
     );
   }
-}
 
-/* First click/touch/keyboard fallback */
-
-function firstInteraction(event) {
-  if (playing || manualMusicOff) return;
-
-  // Let the music button handle its own click.
-  if (
-    musicButton &&
-    event.target instanceof Element &&
-    event.target.closest('#musicButton')
-  ) {
-    return;
+  function startMusicOnInteraction() {
+    if (!musicEnabled) {
+      startMusic();
+    }
   }
 
-  playMusic();
-}
-
-function removeAutoPlayListeners() {
-  document.removeEventListener(
-    'pointerdown',
-    firstInteraction
-  );
-
-  document.removeEventListener(
-    'keydown',
-    firstInteraction
-  );
-}
-
-/* Music button */
-
-if (musicButton) {
   musicButton.addEventListener(
-    'click',
-    async () => {
-      if (playing) {
-        stopMusic(true);
+    "click",
+    () => {
+      if (musicEnabled) {
+        stopMusic();
       } else {
-        manualMusicOff = false;
-        await playMusic();
+        startMusic();
       }
     }
   );
-}
 
-/* Attempt to start as soon as page loads */
 
-function attemptAutoPlay() {
-  if (!manualMusicOff) {
-    playMusic();
+  // ========================================
+  // 5. CONFETTI EMAS
+  // ========================================
+
+  const confettiCanvas =
+    document.getElementById("confettiCanvas");
+
+  const confettiContext =
+    confettiCanvas.getContext("2d");
+
+  let particles = [];
+  let confettiAnimation = null;
+
+  const confettiColors = [
+    "#d9ba80",
+    "#f1dfb9",
+    "#ffffff",
+    "#9fbcda",
+    "#b88953"
+  ];
+
+  function resizeConfetti() {
+    const dpr = window.devicePixelRatio || 1;
+
+    confettiCanvas.width =
+      Math.round(window.innerWidth * dpr);
+
+    confettiCanvas.height =
+      Math.round(window.innerHeight * dpr);
+
+    confettiContext.setTransform(
+      dpr, 0, 0, dpr, 0, 0
+    );
   }
-}
 
-if (document.readyState === 'complete') {
-  attemptAutoPlay();
-} else {
   window.addEventListener(
-    'load',
-    attemptAutoPlay,
-    { once: true }
+    "resize",
+    resizeConfetti
   );
-}
 
-/* Browser autoplay fallback */
+  resizeConfetti();
 
-document.addEventListener(
-  'pointerdown',
-  firstInteraction
-);
+  function launchConfetti(amount = 120) {
+    resizeConfetti();
 
-document.addEventListener(
-  'keydown',
-  firstInteraction
-);
-
-/* Stop music when leaving the tab */
-
-document.addEventListener(
-  'visibilitychange',
-  () => {
-    if (document.hidden && playing) {
-      stopMusic(false);
-
-      // Allow starting again when the page is used.
-      manualMusicOff = false;
-
-      document.addEventListener(
-        'pointerdown',
-        firstInteraction
-      );
-
-      document.addEventListener(
-        'keydown',
-        firstInteraction
-      );
-    }
-  }
-);
-
-/* =========================================
-   6. BIRTHDAY CONFETTI ANIMATION
-========================================= */
-
-const confetti = $('#confetti');
-
-let pieces = [];
-let confettiActive = false;
-let confettiFrame = 0;
-
-function celebrate() {
-  const wishButton = $('#wishButton');
-
-  if (reduced) {
-    if (wishButton) {
-      wishButton.innerHTML =
-        'YOUR WISH IS MY WISH <span>♡</span>';
+    for (let i = 0; i < amount; i++) {
+      particles.push({
+        x: Math.random() * window.innerWidth,
+        y: -20 - Math.random() * 300,
+        vx: (Math.random() - .5) * 3,
+        vy: 1.7 + Math.random() * 3,
+        width: 4 + Math.random() * 6,
+        height: 5 + Math.random() * 8,
+        rotation: Math.random() * 6,
+        spin: (Math.random() - .5) * .15,
+        color: confettiColors[
+          Math.floor(
+            Math.random() * confettiColors.length
+          )
+        ],
+        life: 0
+      });
     }
 
-    return;
+    if (confettiAnimation === null) {
+      animateConfetti();
+    }
   }
-
-  if (!confetti) return;
-
-  const dpr = Math.min(
-    window.devicePixelRatio || 1,
-    2
-  );
-
-  confetti.width = Math.round(
-    window.innerWidth * dpr
-  );
-
-  confetti.height = Math.round(
-    window.innerHeight * dpr
-  );
-
-  const ctx = confetti.getContext('2d');
-
-  ctx.setTransform(
-    dpr, 0, 0, dpr, 0, 0
-  );
-
-  pieces = Array.from(
-    { length: 180 },
-    () => ({
-      x: Math.random() * window.innerWidth,
-
-      y: -Math.random() *
-        window.innerHeight * 0.7,
-
-      vx: (Math.random() - 0.5) * 2.8,
-
-      vy: 1.7 + Math.random() * 3.3,
-
-      angle: Math.random() * 6,
-
-      size: 3 + Math.random() * 6,
-
-      color: [
-        '#d5b77c',
-        '#f0ddba',
-        '#59d6a3',
-        '#ffffff'
-      ][Math.floor(Math.random() * 4)]
-    })
-  );
-
-  if (confettiActive) return;
-
-  confettiActive = true;
-  confettiFrame = 0;
 
   function animateConfetti() {
-    ctx.clearRect(
-      0,
-      0,
-      window.innerWidth,
-      window.innerHeight
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    confettiContext.clearRect(
+      0, 0, width, height
     );
 
-    pieces.forEach(piece => {
-      piece.x += piece.vx;
-      piece.y += piece.vy;
-      piece.angle += 0.045;
+    particles = particles.filter(
+      particle =>
+        particle.y < height + 30 &&
+        particle.life < 450
+    );
 
-      ctx.save();
+    particles.forEach(particle => {
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      particle.rotation += particle.spin;
+      particle.life++;
 
-      ctx.translate(
-        piece.x,
-        piece.y
+      confettiContext.save();
+
+      confettiContext.translate(
+        particle.x,
+        particle.y
       );
 
-      ctx.rotate(piece.angle);
-
-      ctx.fillStyle = piece.color;
-
-      ctx.fillRect(
-        -piece.size / 2,
-        -piece.size / 2,
-        piece.size,
-        piece.size * 0.55
+      confettiContext.rotate(
+        particle.rotation
       );
 
-      ctx.restore();
+      confettiContext.fillStyle =
+        particle.color;
+
+      confettiContext.fillRect(
+        -particle.width / 2,
+        -particle.height / 2,
+        particle.width,
+        particle.height
+      );
+
+      confettiContext.restore();
     });
 
-    confettiFrame++;
-
-    if (confettiFrame < 310) {
-      requestAnimationFrame(
-        animateConfetti
-      );
+    if (particles.length > 0) {
+      confettiAnimation =
+        requestAnimationFrame(
+          animateConfetti
+        );
     } else {
-      ctx.clearRect(
-        0,
-        0,
-        window.innerWidth,
-        window.innerHeight
-      );
+      confettiAnimation = null;
 
-      confettiActive = false;
+      confettiContext.clearRect(
+        0, 0, width, height
+      );
     }
   }
 
-  animateConfetti();
-}
 
-/* =========================================
-   7. FINAL BIRTHDAY SURPRISE
-========================================= */
+  // ========================================
+  // 6. KEJUTAN TERAKHIR
+  // ========================================
 
-const wishButton = $('#wishButton');
+  const makeWish =
+    document.getElementById("makeWish");
 
-if (wishButton) {
-  wishButton.addEventListener(
-    'click',
-    () => {
-      celebrate();
+  const wishResult =
+    document.getElementById("wishResult");
 
-      wishButton.innerHTML =
-        'YOUR WISH IS MY WISH <span>♡</span>';
-    }
-  );
-}
+  const cakeScene =
+    document.querySelector(".cake-scene");
 
-/* =========================================
-   END OF GSR BIRTHDAY JAVASCRIPT
-========================================= */
+  makeWish.addEventListener("click", () => {
+    cakeScene.classList.add("wished");
+
+    wishResult.textContent =
+      "Aamiin. Semoga semua doa baikmu terkabul, Sayang. ♡";
+
+    makeWish.textContent =
+      "✨ Rayakan Sekali Lagi";
+
+    launchConfetti(220);
+
+    startMusicOnInteraction();
+  });
+
+});
